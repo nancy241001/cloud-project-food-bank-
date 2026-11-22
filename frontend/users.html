@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Users - Food Bank</title>
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <!-- Momen (auth): admin-only user and role management. Calls /api/users (docs/API_CONTRACT.md).
+       Staff who open this page get 403 from the API, so nothing is shown. -->
+  <main class="page">
+    <header class="page-head">
+      <h1>Users and roles</h1>
+      <button type="button" id="newUserBtn">Add a user</button>
+    </header>
+    <p id="msg" class="message" hidden></p>
+    <section class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Created</th><th></th></tr></thead>
+          <tbody id="userRows"><tr><td colspan="6">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="userDialog">
+    <form id="userForm" novalidate>
+      <h3>Add a user</h3>
+      <label>Full name <input name="full_name" required maxlength="100" /></label>
+      <label>Email <input name="email" type="email" required maxlength="255" autocomplete="off" /></label>
+      <label>Temporary password (10+ characters) <input name="password" type="password" required minlength="10" autocomplete="new-password" /></label>
+      <label>Role <select name="role"><option value="staff">Staff</option><option value="admin">Admin</option></select></label>
+      <p id="userMsg" class="message" hidden></p>
+      <div class="row">
+        <button type="button" class="secondary" data-close>Cancel</button>
+        <button type="submit">Create user</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/users.js"></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inventory - Food Bank</title>
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <!-- Mohamed: Donation & Inventory Management. Calls /api/items (docs/API_CONTRACT.md). -->
+  <main class="page">
+    <header class="page-head">
+      <h1>Inventory</h1>
+      <button type="button" id="newDonationBtn">Record a donation</button>
+    </header>
+    <p id="msg" class="message" hidden></p>
+
+    <section class="card">
+      <h2>Search stock</h2>
+      <form id="searchForm" class="filters">
+        <label>Name <input type="search" name="q" maxlength="60" placeholder="e.g. rice" /></label>
+        <label>Category <select name="category" class="category-select"><option value="">All</option></select></label>
+        <label>Expiring before <input type="date" name="expiring_before" /></label>
+        <label class="inline"><input type="checkbox" name="in_stock" value="true" checked /> In stock only</label>
+        <label class="inline"><input type="checkbox" name="low_stock" value="true" /> Low stock (&le; 10)</label>
+        <button type="submit">Search</button>
+      </form>
+      <div id="tiles" class="tiles"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Item</th><th>Category</th><th>Quantity</th><th>Donated</th><th>Expiry</th><th>Days left</th><th>Donor</th><th>Location</th><th></th></tr></thead>
+          <tbody id="itemRows"><tr><td colspan="9">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Record a donation -->
+  <dialog id="donationDialog">
+    <form id="donationForm" novalidate>
+      <h3>Record a donation</h3>
+      <label>Item name <input name="name" required maxlength="120" /></label>
+      <div class="row-2">
+        <label>Category <select name="category" class="category-select" required><option value="">Choose...</option></select></label>
+        <label>Unit <input name="unit" required maxlength="20" placeholder="can, kg, pack..." /></label>
+      </div>
+      <div class="row-2">
+        <label>Quantity <input name="quantity" type="number" min="1" step="1" required /></label>
+        <label>Storage location <input name="storage_location" maxlength="50" placeholder="Shelf 3" /></label>
+      </div>
+      <div class="row-2">
+        <label>Donation date <input name="donation_date" type="date" required /></label>
+        <label>Expiry date <input name="expiry_date" type="date" required /></label>
+      </div>
+      <div class="row-2">
+        <label>Donor type <select name="donor_type" id="donorType" required></select></label>
+        <label>Donor name (optional) <input name="donor_name" maxlength="120" /></label>
+      </div>
+      <label>Lot / batch (optional) <input name="lot" maxlength="50" /></label>
+      <p id="donationMsg" class="message" hidden></p>
+      <div class="row">
+        <button type="button" class="secondary" data-close>Cancel</button>
+        <button type="submit">Save donation</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Edit an item -->
+  <dialog id="editDialog">
+    <form id="editForm" novalidate>
+      <h3>Update <span id="editName"></span></h3>
+      <div class="row-2">
+        <label>Quantity <input name="quantity" type="number" min="0" step="1" required /></label>
+        <label>Expiry date <input name="expiry_date" type="date" required /></label>
+      </div>
+      <div class="row-2">
+        <label>Storage location <input name="storage_location" maxlength="50" /></label>
+        <label>Lot / batch <input name="lot" maxlength="50" /></label>
+      </div>
+      <p id="editMsg" class="message" hidden></p>
+      <div class="row">
+        <button type="button" class="secondary" data-close>Cancel</button>
+        <button type="submit">Save changes</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/nav.js"></script>
+  <script src="js/inventory.js"></script>
+</body>
+</html>
