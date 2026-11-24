@@ -27,3 +27,16 @@ building, so its stock must become 0. Please:
 
 Nancy's backend also **reads** `food_items` directly for reports (read-only database login,
 see `database/roles.sql`). Please tell Nancy before renaming or removing columns.
+
+## Local development
+
+```powershell
+copy .env.example .env
+npm install
+npm test
+npm start
+```
+
+Set `DATABASE_URL`, the shared `JWT_SECRET`, and the frontend `CORS_ORIGIN` in `.env`.
+The service listens on port `3001` by default. Tests use a seeded in-memory PostgreSQL
+database and never connect to Neon.
