@@ -40,3 +40,34 @@ npm start
 Set `DATABASE_URL`, the shared `JWT_SECRET`, and the frontend `CORS_ORIGIN` in `.env`.
 The service listens on port `3001` by default. Tests use a seeded in-memory PostgreSQL
 database and never connect to Neon.
+
+## Floci integrations
+
+Floci uses the same AWS SDK paths as AWS, selected by `AWS_ENDPOINT_URL`. Copy only
+placeholder names from `.env.example`; keep connection strings and credentials in the
+ignored `.env` or your shell.
+
+```powershell
+$env:AWS_ENDPOINT_URL = 'http://127.0.0.1:4566'
+$env:AWS_REGION = 'us-east-1'
+$env:AWS_ACCESS_KEY_ID = 'test'
+$env:AWS_SECRET_ACCESS_KEY = 'test'
+$env:USE_SECRETS_MANAGER = 'true'
+$env:INVENTORY_SECRET_ID = 'foodbank/mohamed/inventory'
+$env:INVENTORY_EXPORTS_BUCKET = 'foodbank-inventory-exports'
+$env:CW_LOG_GROUP = '/foodbank/inventory'
+npm start
+```
+
+- Startup reads `DATABASE_URL` from the JSON secret when `USE_SECRETS_MANAGER=true`.
+- `POST /api/items/export` is admin-only and uploads current stock (`quantity > 0`)
+  as a CSV to the private, encrypted Inventory exports bucket.
+- A successful `POST /api/items` publishes `INVENTORY_DONATION_CREATED` with only
+  `itemId`, `quantity`, and `actorId` to CloudWatch Logs.
+- `node scripts/verify-floci.js` provisions/checks these resources using the ignored
+  local `.env`, creates one test donation, verifies the CSV and audit event, and removes
+  the test database row. It never displays secret values.
+
+The shared database owner must have applied `database/roles.sql`. In particular,
+`inventory_service` needs `SELECT (user_id, name, role) ON users` so list responses can
+populate `created_by_name` without granting access to password hashes or email addresses.

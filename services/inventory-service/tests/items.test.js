@@ -9,6 +9,8 @@ let db;
 let app;
 let staffToken;
 let adminToken;
+let stockExporter;
+let audit;
 
 function token(id, role, algorithm = 'HS256') {
   return jwt.sign({ sub: String(id), role, name: role }, SECRET, { algorithm, expiresIn: '1h' });
@@ -56,7 +58,9 @@ async function seed() {
       return result;
     },
   };
-  app = createApp({ db, jwtSecret: SECRET });
+  stockExporter = { exportCurrentStock: jest.fn().mockResolvedValue({ bucket: 'test-bucket', key: 'inventory/test.csv' }) };
+  audit = { donationCreated: jest.fn().mockResolvedValue() };
+  app = createApp({ db, jwtSecret: SECRET, stockExporter, audit });
   staffToken = token(1, 'staff');
   adminToken = token(2, 'admin');
 }
@@ -104,8 +108,9 @@ describe('POST /api/items', () => {
       donor_type: 'shop', donor_name: 'Local Shop', lot: 'P1', storage_location: 'Shelf 2',
     });
     expect(response.status).toBe(201);
-    expect(response.body).toEqual(expect.objectContaining({ name: 'Pasta', quantity: 12, created_by_name: 'Staff One' }));
+    expect(response.body).toEqual(expect.objectContaining({ name: 'Pasta', quantity: 12, created_by_name: 'staff' }));
     expect(response.body.donation_date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(audit.donationCreated).toHaveBeenCalledWith({ itemId: response.body.item_id, quantity: 12, actorId: 1 });
   });
 
   test('rejects invalid quantities, dates, categories, and donor types', async () => {
@@ -114,6 +119,23 @@ describe('POST /api/items', () => {
     expect((await request(app).post('/api/items').set(auth()).send({ ...base, category: 'food' })).status).toBe(400);
     expect((await request(app).post('/api/items').set(auth()).send({ ...base, donor_type: 'unknown' })).status).toBe(400);
     expect((await request(app).post('/api/items').set(auth()).send({ ...base, expiry_date: '2098-12-31' })).status).toBe(400);
+  });
+});
+
+describe('POST /api/items/export', () => {
+  test('allows an admin to export current stock only', async () => {
+    const response = await request(app).post('/api/items/export').set(auth(adminToken));
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({ count: 3, bucket: 'test-bucket', key: 'inventory/test.csv' });
+    const rows = stockExporter.exportCurrentStock.mock.calls[0][0];
+    expect(rows).toHaveLength(3);
+    expect(rows[0]).toEqual(expect.objectContaining({ item_id: 3, name: 'Milk', quantity: 4 }));
+    expect(stockExporter.exportCurrentStock).toHaveBeenCalledWith(rows, 2);
+  });
+
+  test('rejects staff exports', async () => {
+    expect((await request(app).post('/api/items/export').set(auth(staffToken))).status).toBe(403);
+    expect(stockExporter.exportCurrentStock).not.toHaveBeenCalled();
   });
 });
 
