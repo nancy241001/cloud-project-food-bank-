@@ -11,7 +11,7 @@ const ITEM_SELECT = `
   FROM food_items f
   LEFT JOIN users u ON u.user_id = f.created_by`;
 
-function itemRouter(db) {
+function itemRouter(db, { stockExporter, audit } = {}) {
   const router = express.Router();
   router.use(requireRole('staff', 'admin'));
 
@@ -66,8 +66,34 @@ function itemRouter(db) {
       const inserted = await db.query(
         `INSERT INTO food_items (name, category, quantity, unit, donation_date, expiry_date, donor_type, donor_name, lot, storage_location, created_by)
          VALUES ($1, $2, $3, $4, $5::date, $6::date, $7, $8, $9, $10, $11) RETURNING item_id`, values);
-      const { rows } = await db.query(`${ITEM_SELECT} WHERE f.item_id = $1`, [inserted.rows[0].item_id]);
+      if (audit) {
+        try {
+          await audit.donationCreated({ itemId: inserted.rows[0].item_id, quantity: body.quantity, actorId: req.user.id });
+        } catch (err) {
+          console.error('Inventory audit delivery failed', err.message);
+        }
+      }
+      const { rows } = await db.query(
+        `SELECT f.item_id, f.name, f.category, f.quantity, f.unit,
+                f.donation_date::text AS donation_date, f.expiry_date::text AS expiry_date,
+                (f.expiry_date - CURRENT_DATE)::int AS days_left,
+                f.donor_type, f.donor_name, f.lot, f.storage_location,
+                $2::text AS created_by_name
+         FROM food_items f WHERE f.item_id = $1`,
+        [inserted.rows[0].item_id, req.user.name || null],
+      );
       return res.status(201).json(rows[0]);
+    } catch (err) { return next(err); }
+  });
+
+  router.post('/export', requireRole('admin'), async (req, res, next) => {
+    try {
+      if (!stockExporter) throw new Error('Stock export is not configured');
+      const { rows } = await db.query(
+        `SELECT item_id, name, category, quantity, unit, expiry_date::text AS expiry_date, storage_location
+         FROM food_items WHERE quantity > 0 ORDER BY expiry_date ASC, item_id ASC`, []);
+      const location = await stockExporter.exportCurrentStock(rows, req.user.id);
+      return res.status(201).json({ count: rows.length, ...location });
     } catch (err) { return next(err); }
   });
 
