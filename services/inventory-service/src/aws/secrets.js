@@ -10,6 +10,7 @@ async function loadDatabaseSecret() {
     throw new Error(`Secret ${config.aws.secretId} does not contain DATABASE_URL`);
   }
   config.databaseUrl = secret.DATABASE_URL;
+  if (typeof secret.JWT_SECRET === 'string' && secret.JWT_SECRET) config.jwtSecret = secret.JWT_SECRET;
   return true;
 }
 
