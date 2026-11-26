@@ -22,14 +22,14 @@ const createSchema = z.object({
 const patchSchema = z.object({
   household_size: z.number().int().min(1).max(30).optional(),
   contact_phone: phone.nullable().optional(),
-  status: z.enum(['active', 'inactive']).optional(),
+  status: z.enum(['active', 'suspended']).optional(),
 }).strict().refine((v) => Object.keys(v).length > 0, 'send at least one field');
 
 router.get('/', async (req, res, next) => {
   try {
     const q = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 50) : '';
     const status = req.query.status;
-    if (status !== undefined && !['active', 'inactive'].includes(status)) throw httpError(400, 'status must be active or inactive');
+    if (status !== undefined && !['active', 'suspended'].includes(status)) throw httpError(400, 'status must be active or suspended');
     const where = []; const vals = [];
     if (q) { vals.push(`%${q.replace(/[\\%_]/g, '\\$&')}%`); where.push(`f.household_ref ILIKE $${vals.length}`); }
     if (status) { vals.push(status); where.push(`f.status = $${vals.length}`); }
