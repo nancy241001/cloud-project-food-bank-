@@ -47,7 +47,7 @@ const secrets = new SecretsManagerClient(base);
 const logs = new CloudWatchLogsClient(base);
 
 async function provision() {
-  const secretString = JSON.stringify({ DATABASE_URL: databaseUrl });
+  const secretString = JSON.stringify({ DATABASE_URL: databaseUrl, JWT_SECRET: jwtSecret });
   try {
     await secrets.send(new DescribeSecretCommand({ SecretId: secretId }));
     await secrets.send(new PutSecretValueCommand({ SecretId: secretId, SecretString: secretString }));
@@ -165,11 +165,9 @@ async function main() {
     if (keys.join(',') !== ['actorId', 'event', 'itemId', 'quantity'].sort().join(',')) {
       throw new Error('Audit event contains unexpected fields');
     }
-    console.log(JSON.stringify({
-      secretsManager: 'PASS: service loaded inventory with DATABASE_URL absent from its environment',
-      s3: `PASS: private CSV object exists and contains test item ${createdId}`,
-      cloudWatchLogs: `PASS: minimal donation audit event exists for test item ${createdId}`,
-    }, null, 2));
+    console.log('PASS — Secrets Manager startup without DATABASE_URL');
+    console.log(`PASS — S3 CSV upload verified with test item ID ${createdId}`);
+    console.log(`PASS — CloudWatch Logs donation event verified with test item ID ${createdId}`);
   } finally {
     if (createdId) await pool.query('DELETE FROM food_items WHERE item_id = $1', [createdId]).catch(() => {});
     await pool.end();

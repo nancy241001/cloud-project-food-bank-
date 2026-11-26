@@ -71,3 +71,19 @@ npm start
 The shared database owner must have applied `database/roles.sql`. In particular,
 `inventory_service` needs `SELECT (user_id, name, role) ON users` so list responses can
 populate `created_by_name` without granting access to password hashes or email addresses.
+
+### Lambda and API Gateway in Floci
+
+The same Express app runs locally on port `3001` and in Lambda through
+`src/lambda/apiHandler.js`. From the repository root:
+
+```bash
+bash infra/floci/build-inventory-lambda.sh
+export DATABASE_URL='<inventory_service connection string>'
+export JWT_SECRET='<shared JWT secret>'
+bash infra/floci/setup-mohamed.sh
+```
+
+The setup script stores both values in `foodbank/mohamed/inventory`, deploys the
+`mohamed-inventory-api` Lambda, and creates HTTP API Gateway routes for `/health` and
+`/api/items`. It prints the local Floci API Gateway URL without printing either secret.
