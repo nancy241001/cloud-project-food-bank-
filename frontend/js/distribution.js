@@ -23,9 +23,9 @@ async function loadFamilyPickers() {
     const give = document.getElementById('familySelect');
     const hist = document.getElementById('historyFamily');
     give.replaceChildren(el('option', { value: '' }, 'Choose an active family...'),
-      ...families.filter((f) => f.status === 'active').map((f) => el('option', { value: f.id }, `${f.household_ref} (${f.household_size} people)`)));
+      ...families.filter((f) => f.status === 'active').map((f) => el('option', { value: f.family_id }, `${f.household_ref} (${f.household_size} people)`)));
     hist.replaceChildren(el('option', { value: '' }, 'All families'),
-      ...families.map((f) => el('option', { value: f.id }, f.household_ref)));
+      ...families.map((f) => el('option', { value: f.family_id }, f.household_ref)));
   } catch (err) { showMessage('msg', err.message, 'error'); }
 }
 
@@ -42,7 +42,7 @@ function familyRow(f) {
 
 async function setStatus(f, status) {
   try {
-    await Api.patch(`/api/families/${f.id}`, { status });
+    await Api.patch(`/api/families/${f.family_id}`, { status });
     showMessage('msg', `${f.household_ref} is now ${status}.`, 'success');
     await Promise.all([loadFamilies(), loadFamilyPickers()]);
   } catch (err) { showMessage('msg', err.message, 'error'); }
@@ -74,7 +74,7 @@ familyForm.addEventListener('submit', async (e) => {
   if (phone && !/^[0-9+\-\s]{6,30}$/.test(phone)) return showMessage('familyMsg', 'Phone can only contain digits, spaces, + and -', 'error');
   try {
     if (editingFamily) {
-      await Api.patch(`/api/families/${editingFamily.id}`, { household_size: size, contact_phone: phone || null });
+      await Api.patch(`/api/families/${editingFamily.family_id}`, { household_size: size, contact_phone: phone || null });
     } else {
       const ref = familyForm.household_ref.value.trim().toUpperCase();
       if (!/^[A-Z0-9-]{3,30}$/.test(ref)) return showMessage('familyMsg', 'Reference: 3-30 letters, digits or dashes (e.g. FAM-0007)', 'error');
@@ -133,7 +133,7 @@ document.getElementById('distForm').addEventListener('submit', async (e) => {
   try {
     const d = await Api.post('/api/distributions', { family_id: familyId, items: lines, ...(notes ? { notes } : {}) });
     showMessage('distMsg', '');
-    showMessage('msg', `Distribution #${d.id} recorded for ${d.household_ref}. Stock updated.`, 'success');
+    showMessage('msg', `Distribution #${d.distribution_id} recorded for ${d.household_ref}. Stock updated.`, 'success');
     e.target.reset();
     document.getElementById('lineRows').replaceChildren();
     await loadStock();
@@ -152,7 +152,7 @@ async function loadHistory() {
     const q = qs(f);
     const { distributions } = await Api.get(`/api/distributions${q ? `?${q}` : ''}`);
     tbody.replaceChildren(...(distributions.length ? distributions.map((d) => el('tr', {},
-      el('td', {}, d.id), el('td', {}, fmtDateTime(d.distributed_at)), el('td', {}, d.household_ref),
+      el('td', {}, d.distribution_id), el('td', {}, fmtDateTime(d.distributed_at)), el('td', {}, d.household_ref),
       el('td', {}, d.items.map((i) => `${i.quantity} ${i.unit} ${i.name}`).join(', ')),
       el('td', {}, d.staff_name), el('td', {}, d.notes || '-'))) : [el('tr', {}, el('td', { colspan: 6 }, 'No distributions in this period.'))]));
   } catch (err) { tbody.replaceChildren(el('tr', {}, el('td', { colspan: 6 }, `Could not load history: ${err.message}`))); }
