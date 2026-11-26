@@ -13,7 +13,8 @@ export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-test}"
 # Give the AWS CLI no read timeout so it waits instead of failing.
 AWS_TMP_CONFIG="$(mktemp)"
 printf '[default]\ncli_read_timeout = 0\ncli_connect_timeout = 60\n' > "$AWS_TMP_CONFIG"
-export AWS_CONFIG_FILE="$AWS_TMP_CONFIG"
+# The Windows AWS CLI cannot read a Git Bash /tmp path, so convert it when cygpath exists.
+if command -v cygpath >/dev/null; then export AWS_CONFIG_FILE="$(cygpath -w "$AWS_TMP_CONFIG")"; else export AWS_CONFIG_FILE="$AWS_TMP_CONFIG"; fi
 trap 'rm -f "$AWS_TMP_CONFIG"' EXIT
 
 command -v aws >/dev/null || { echo "Install the AWS CLI first."; exit 1; }
