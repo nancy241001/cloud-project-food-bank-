@@ -51,3 +51,11 @@ $env:TEST_DATABASE_URL = "<test branch connection string>"; npm test
    (the S3 export check should now PASS).
 
 Without Docker you can still run `npm.cmd run floci:setup` (no `--with-lambda`) against the Floci Windows binary.
+
+## Deploy on Vercel (public demo)
+
+Create a Vercel project with **Root Directory** `services/alerts-reporting-service`, then set these
+environment variables in the Vercel dashboard (never in the repo): `DATABASE_URL` (alerts_service login),
+`JWT_SECRET` (the shared one, 32+ characters), `CORS_ORIGIN` (the frontend URL), `INVENTORY_API_URL`
+(the deployed inventory service). Email needs `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`.
+CSV exports to S3 and CloudWatch metrics only work in the Floci/AWS deployment, not on Vercel.
