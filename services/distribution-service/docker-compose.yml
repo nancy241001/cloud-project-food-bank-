@@ -1,8 +1,0 @@
-# Local AWS (Floci). Needs Docker running. Lambda runs as real containers, so the Docker socket is mounted.
-services:
-  floci:
-    image: floci/floci:latest
-    ports:
-      - "4566:4566"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock

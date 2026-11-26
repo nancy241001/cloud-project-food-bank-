@@ -1,4 +1,0 @@
-const app = require('./app');
-const config = require('./config');
-
-app.listen(config.port, () => console.log(`distribution-service (auth + families + distributions) on http://localhost:${config.port}`));

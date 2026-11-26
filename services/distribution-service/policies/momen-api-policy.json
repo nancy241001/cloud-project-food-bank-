@@ -1,7 +1,0 @@
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    { "Sid": "ReadOwnSecretOnly", "Effect": "Allow", "Action": "secretsmanager:GetSecretValue", "Resource": "arn:aws:secretsmanager:*:*:secret:foodbank/momen/app*" },
-    { "Sid": "WriteOwnLogsOnly", "Effect": "Allow", "Action": ["logs:CreateLogStream", "logs:PutLogEvents"], "Resource": "arn:aws:logs:*:*:log-group:/aws/lambda/momen-distribution-api:*" }
-  ]
-}
