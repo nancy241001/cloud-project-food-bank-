@@ -30,14 +30,14 @@ async function loadFamilyPickers() {
 }
 
 function familyRow(f) {
-  const next = f.status === 'active' ? 'inactive' : 'active';
+  const next = f.status === 'active' ? 'suspended' : 'active';
   return el('tr', {},
     el('td', {}, f.household_ref), el('td', {}, f.household_size), el('td', {}, f.contact_phone || '-'),
     el('td', {}, el('span', { class: `pill ${f.status === 'active' ? 'ok' : 'muted-pill'}` }, f.status)),
     el('td', {}, f.last_distribution_at ? fmtDateTime(f.last_distribution_at) : 'never'),
     el('td', { class: 'actions' },
       el('button', { type: 'button', class: 'secondary', onclick: () => openFamily(f) }, 'Edit'),
-      el('button', { type: 'button', class: 'secondary', onclick: () => setStatus(f, next) }, next === 'inactive' ? 'Deactivate' : 'Activate')));
+      el('button', { type: 'button', class: 'secondary', onclick: () => setStatus(f, next) }, next === 'suspended' ? 'Deactivate' : 'Activate')));
 }
 
 async function setStatus(f, status) {
