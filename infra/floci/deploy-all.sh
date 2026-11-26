@@ -9,13 +9,16 @@ export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-test}"
 export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-test}"
 
-# The first Lambda creation makes Floci pull a runtime image, which can take minutes.
-# Give the AWS CLI no read timeout so it waits instead of failing.
-AWS_TMP_CONFIG="$(mktemp)"
-printf '[default]\ncli_read_timeout = 0\ncli_connect_timeout = 60\n' > "$AWS_TMP_CONFIG"
-# The Windows AWS CLI cannot read a Git Bash /tmp path, so convert it when cygpath exists.
-if command -v cygpath >/dev/null; then export AWS_CONFIG_FILE="$(cygpath -w "$AWS_TMP_CONFIG")"; else export AWS_CONFIG_FILE="$AWS_TMP_CONFIG"; fi
-trap 'rm -f "$AWS_TMP_CONFIG"' EXIT
+# The first Lambda create/update makes Floci pull and start a runtime, which can take minutes.
+# Put a tiny wrapper first on PATH so every AWS CLI call waits instead of timing out at 60 seconds.
+REAL_AWS="$(command -v aws || true)"
+SHIM_DIR="$(mktemp -d)"
+if [ -n "$REAL_AWS" ]; then
+  printf '#!/usr/bin/env bash\nexec "%s" --cli-read-timeout 0 "$@"\n' "$REAL_AWS" > "$SHIM_DIR/aws"
+  chmod +x "$SHIM_DIR/aws"
+  export PATH="$SHIM_DIR:$PATH"
+fi
+trap 'rm -rf "$SHIM_DIR"' EXIT
 
 command -v aws >/dev/null || { echo "Install the AWS CLI first."; exit 1; }
 command -v docker >/dev/null || { echo "Install Docker first."; exit 1; }
