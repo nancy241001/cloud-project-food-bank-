@@ -14,7 +14,7 @@ async function loadUsers() {
 }
 
 function userRow(u) {
-  const isMe = u.user_id === user.id;
+  const isMe = u.id === user.id;
   const actions = el('td', { class: 'actions' });
   if (!isMe) { // an admin cannot demote or deactivate themselves (the API refuses it too)
     const other = u.role === 'admin' ? 'staff' : 'admin';
@@ -32,7 +32,7 @@ function userRow(u) {
 async function update(u, body, done) {
   if (body.role === 'admin' && !window.confirm(`Give ${u.name} full admin rights?`)) return;
   try {
-    await Api.patch(`/api/users/${u.user_id}`, body);
+    await Api.patch(`/api/users/${u.id}`, body);
     showMessage('msg', `${done}.`, 'success');
     loadUsers();
   } catch (err) { showMessage('msg', err.message, 'error'); }

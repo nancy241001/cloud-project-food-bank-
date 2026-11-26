@@ -29,5 +29,25 @@ and refuses to run in production.
 $env:TEST_DATABASE_URL = "<test branch connection string>"; npm test
 ```
 
-## Deploy on Floci
-See `infra/floci/setup-nancy.sh` and `docs/nancy/GUIDE.md` section 11.
+## Deploy on Floci (Windows, PowerShell)
+
+1. Docker Desktop running ("Engine running").
+2. Start Floci (from the project folder):
+   ```powershell
+   cd $HOME\Documents\foodbank\infra\floci
+   docker compose up -d
+   ```
+3. Create all AWS resources and deploy the Lambdas (reads your `.env`, prints no secrets, safe to re-run):
+   ```powershell
+   cd $HOME\Documents\foodbank\services\alerts-reporting-service
+   npm.cmd install
+   npm.cmd run floci:deploy
+   npm.cmd run floci:check
+   ```
+   Creates: S3 bucket (private, encrypted, versioned), 2 Secrets Manager secrets, 3 IAM roles (least privilege),
+   CloudWatch log groups + metric filters + 4 alarms, 2 Lambda functions, the daily EventBridge schedule,
+   and an API Gateway HTTP API (its URL is printed at the end).
+4. In `.env` set `CW_LOG_GROUP=/foodbank/api` and `CW_METRICS_ENABLED=true`, restart the backend, then `npm.cmd run smoke`
+   (the S3 export check should now PASS).
+
+Without Docker you can still run `npm.cmd run floci:setup` (no `--with-lambda`) against the Floci Windows binary.

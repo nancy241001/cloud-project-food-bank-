@@ -22,6 +22,7 @@ GRANT USAGE ON SCHEMA public TO inventory_service, distribution_service, alerts_
 GRANT SELECT, INSERT, UPDATE, DELETE ON food_items TO inventory_service;
 GRANT USAGE, SELECT ON SEQUENCE food_items_item_id_seq TO inventory_service;
 GRANT SELECT (user_id, name, role) ON users TO inventory_service;       -- show who added an item; no hashes
+GRANT SELECT (item_id) ON distribution_items TO inventory_service;      -- deletion history check only; no distribution details or writes
 
 -- ---------- Momen: distribution_service (+ authentication) ----------
 GRANT SELECT, INSERT, UPDATE ON users TO distribution_service;          -- login, create users, change roles (no DELETE: deactivate instead)

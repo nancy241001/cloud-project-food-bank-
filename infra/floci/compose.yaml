@@ -1,7 +1,7 @@
 # Floci = local AWS emulator. Start with:  docker compose -f infra/floci/compose.yaml up -d
 services:
   floci:
-    image: floci/floci:latest
+    image: floci/floci:2.4.0
     ports:
       - "4566:4566"
     environment:

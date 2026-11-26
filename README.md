@@ -24,6 +24,21 @@ How the backends work together:
 - **Data**: each backend writes only its own tables; others may read through a read-only DB login.
 - **Changes to another service's data go through its API** (e.g. Nancy → `PATCH /api/items/{id}` on Mohamed's).
 
+## Features
+- **Inventory** — donated food with quantity, category, donor and expiry date; stock changes recorded per item.
+- **Distribution** — families, distributions and the items handed out; stock is checked and reduced in one transaction.
+- **Expiry alerts** — warning / critical / expired levels, daily scan, acknowledge → resolve workflow, email digest to staff.
+- **Reports** — inventory, distribution and waste summaries with category/date filters and CSV export to S3.
+- **Security** — JWT authentication, admin/staff roles enforced in every backend, ownership checks, validated input, least-privilege database logins, secrets kept out of the code and the repository.
+
+## Technologies
+Node.js and Express · PostgreSQL on Neon · plain HTML/CSS/JavaScript frontend · JSON Web Tokens ·
+AWS services on Floci (S3, Secrets Manager, IAM, CloudWatch, Lambda, EventBridge Scheduler, API Gateway) ·
+Nodemailer with a Brevo SMTP relay · Jest and supertest.
+
+## Security notes
+Never commit `.env` files. Each service reads its settings from its own `.env` (copy `.env.example`) or from AWS Secrets Manager.
+
 ## Get started
 1. **Database (Neon):** follow `database/README.md` (creates all tables, demo data, one login per service).
 2. **Frontend:** static files. From the project folder: `npx serve frontend -l 3000`, then open http://localhost:3000.
