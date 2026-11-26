@@ -25,14 +25,15 @@ the alert settings row and the three service logins exist. Re-running is safe if
 **1. Tables + service logins (already done).** Neon console → FoodBank → **SQL Editor** → paste
 `neon-setup.sql` → **Run**. It is one transaction (`BEGIN … COMMIT`): everything is created or nothing is.
 
-**2. Each student gets their own database password (do this yourself, nobody else sees it).**
-Neon console → FoodBank → **Branches** → `production` → **Roles & Databases** → your role's menu →
-**Reset password**, then copy it straight into your backend's `.env` / Secrets Manager:
-- Mohamed → `inventory_service` · Momen → `distribution_service` · Nancy → `alerts_service`
-
+**2. Each student sets their own database password (nobody else sees it).**
+Neon's **Reset password** button does not work for logins created with SQL, so set it with SQL:
+Neon console → FoodBank → **SQL Editor** → run (typing your own password, 12+ characters with upper,
+lower, number and symbol), then clear the editor:
+```sql
+ALTER ROLE alerts_service WITH PASSWORD 'your-own-password';   -- Mohamed: inventory_service, Momen: distribution_service
+```
 The logins were created **with SQL on purpose**: Neon makes roles created in the Console/API
-administrators (`neon_superuser`), which would defeat least privilege. Resetting a password does not
-change that.
+administrators (`neon_superuser`), which would defeat least privilege.
 
 Your backend's `DATABASE_URL` is then (host from the **Connect** button):
 `postgresql://alerts_service:PASSWORD@HOST/neondb?sslmode=require`
