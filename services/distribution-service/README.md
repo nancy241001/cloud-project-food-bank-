@@ -26,11 +26,3 @@ Every backend verifies tokens itself with the same secret.
 
 When a distribution brings an item's quantity to 0, Nancy's next expiry scan closes its alert
 automatically, so **keep reducing `food_items.quantity` when food is distributed**.
-
-## Deploy on Vercel (public demo)
-
-Create a Vercel project with **Root Directory** `services/distribution-service`, then set these environment
-variables in the Vercel dashboard (never in the repo): `DATABASE_URL` (distribution_service login),
-`JWT_SECRET` (the shared one, 32+ characters) and `CORS_ORIGIN` (the frontend URL). `vercel.json` sends every
-request to `api/index.js`, which runs the same Express app as the Floci Lambda. Secrets Manager and
-CloudWatch metrics only work in the Floci/AWS deployment, not on Vercel.
