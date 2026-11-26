@@ -32,6 +32,12 @@ done
 
 loadenv() { set -a; . "$ROOT/services/$1/.env"; set +a; }
 
+# Updating an existing Lambda is slow and can fail to verify on Floci, so start from a clean slate.
+# This only touches the local Floci emulator, never real AWS.
+for FN in mohamed-inventory-api momen-distribution-api; do
+  aws lambda delete-function --function-name "$FN" >/dev/null 2>&1 || true
+done
+
 echo "== 2/4 Inventory service (Lambda, API Gateway, S3 export bucket, secret)"
 ( loadenv inventory-service && bash "$ROOT/infra/floci/build-inventory-lambda.sh" && bash "$ROOT/infra/floci/setup-mohamed.sh" )
 
