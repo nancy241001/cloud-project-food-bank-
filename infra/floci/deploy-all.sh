@@ -21,8 +21,8 @@ done
 
 loadenv() { set -a; . "$ROOT/services/$1/.env"; set +a; }
 
-echo "== 2/4 Inventory service (S3 export bucket, secret, log group)"
-( loadenv inventory-service && bash "$ROOT/infra/floci/setup-mohamed.sh" )
+echo "== 2/4 Inventory service (Lambda, API Gateway, S3 export bucket, secret)"
+( loadenv inventory-service && bash "$ROOT/infra/floci/build-inventory-lambda.sh" && bash "$ROOT/infra/floci/setup-mohamed.sh" )
 
 echo "== 3/4 Distribution + login service (Lambda + API Gateway)"
 ( cd "$ROOT/services/distribution-service" && bash infra/floci/setup-momen.sh )
@@ -32,4 +32,3 @@ echo "== 4/4 Alerts + reporting service (Lambda, API Gateway, S3, scheduler, Clo
 
 echo
 echo "All three setups finished. Copy each printed API URL into frontend/js/config.js (SERVICES)."
-echo "Note: the inventory backend still runs as a normal Node process on port 3001 (npm start in services/inventory-service)."
