@@ -154,8 +154,8 @@ describe('distributions', () => {
     pool.connect.mockResolvedValue(fakeClient({ family: null }));
     expect((await post()).status).toBe(404);
   });
-  test('suspended family -> 409', async () => {
-    pool.connect.mockResolvedValue(fakeClient({ family: { status: 'suspended' }, stock: [rice()] }));
+  test('inactive family -> 409', async () => {
+    pool.connect.mockResolvedValue(fakeClient({ family: { status: 'inactive' }, stock: [rice()] }));
     expect((await post()).status).toBe(409);
   });
   test('validation: empty items, duplicates, zero qty, extra staff field -> 400', async () => {
