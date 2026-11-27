@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Deploys Momen's service on Floci (docker compose up -d first). Reads secrets from .env, never prints them.
 set -euo pipefail
+export MSYS_NO_PATHCONV=1   # Git Bash on Windows would rewrite /aws/lambda/... into a C:/ path
 cd "$(dirname "$0")/../.."
 export AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test AWS_DEFAULT_REGION=us-east-1
 EP=http://localhost:4566
@@ -12,7 +13,7 @@ FN=momen-distribution-api; ROLE=momen-distribution-api-role; SECRET=foodbank/mom
 bash infra/floci/build-lambda.sh
 
 # 1) Secret (DB url + JWT secret live in Secrets Manager, not in the code)
-BODY=$(node -e 'console.log(JSON.stringify({DATABASE_URL:process.env.DATABASE_URL,JWT_SECRET:process.env.JWT_SECRET}))')
+BODY=$(node -e 'console.log(JSON.stringify(Object.fromEntries(["DATABASE_URL","JWT_SECRET"].filter(k=>process.env[k]).map(k=>[k,process.env[k]]))))')
 aws secretsmanager create-secret --name $SECRET --secret-string "$BODY" >/dev/null 2>&1 \
   || aws secretsmanager put-secret-value --secret-id $SECRET --secret-string "$BODY" >/dev/null
 
@@ -21,8 +22,8 @@ aws iam create-role --role-name $ROLE --assume-role-policy-document file://polic
 aws iam put-role-policy --role-name $ROLE --policy-name momen-api-least-privilege --policy-document file://policies/momen-api-policy.json
 ROLE_ARN=$(aws iam get-role --role-name $ROLE --query Role.Arn --output text)
 
-# 3) Log group
-aws logs create-log-group --log-group-name /aws/lambda/$FN >/dev/null 2>&1 || true
+# 3) Log group (show the error if it fails, then check it exists)
+aws logs create-log-group --log-group-name /aws/lambda/$FN 2>&1 | grep -v ResourceAlreadyExists || true
 
 # 4) Lambda
 ENVV="Variables={USE_SECRETS_MANAGER=true,APP_SECRET_ID=$SECRET,CORS_ORIGIN=$CORS_ORIGIN,NODE_ENV=production}"
